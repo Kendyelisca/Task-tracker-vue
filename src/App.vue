@@ -32,41 +32,57 @@ export default {
       this.showAddTask = !this.showAddTask
     },
 
-    AddTask(task){
+    async AddTask(task){
+      const res = await fetch('https://task-backend-bcgz.onrender.com/tasks', {
+        method: 'POST',
+        headers: {
+          'Content-type': 'application/json',
+         
+        }
+        , body: JSON.stringify(task)
+      })
 
-      this.tasks = [...this.tasks, task]
+      const data = await res.json()
+
+      this.tasks = [...this.tasks, data]
     },
-    deleteTask(id){
-      if(confirm('Are you sure?')){
-        this.tasks = this.tasks.filter((task) => task.id !== id)
-      }
-    },
+    async deleteTask(id) {
+  if (confirm('Are you sure?')) {
+    // Remove the task from the tasks array first
+    this.tasks = this.tasks.filter((task) => task.id !== id);
+
+    // Now, make the DELETE request
+    const res = await fetch(`https://task-backend-bcgz.onrender.com/tasks/${id}`, { method: 'DELETE' });
+
+    console.log('Response Status:', res.status);
+
+    if (res.status !== 204) {
+      alert('Error deleting task');
+      // If there was an error in the DELETE request, you might want to add the task back to the array here.
+      console.error('Delete request error:', await res.text());
+    }
+  }
+}
+,
+
     toggleReminder(id){
+    
+    
+
+
       this.tasks = this.tasks.map((task) =>
       task.id === id ? {...task, reminder: !task.reminder} : task)
+    },
+    async fetchTasks(){
+      const res = await fetch('https://task-backend-bcgz.onrender.com/tasks')
+
+      const data = await res.json()
+
+      return data
     }
   },
-  created(){
-    this.tasks= [
-      { 
-        id:1,
-        text: 'Doctors Appointment',
-        day: 'March 1st at 2:30pm',
-        reminder: true,
-      },
-      { 
-        id:2,
-        text: 'Dentist Appointment',
-        day: 'March 1st at 6:30pm',
-        reminder: true,
-      },
-      { 
-        id:3,
-        text: 'Wife Appointment',
-        day: 'March 1st at 3:30pm',
-        reminder: true,
-      },
-    ]
+  async created(){
+    this.tasks= await this.fetchTasks()
   }
 }
 </script>
